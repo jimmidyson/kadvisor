@@ -3,6 +3,7 @@ package commands
 import (
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/fabric8io/kadvisor/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -20,7 +21,7 @@ var KadvisorCmd = &cobra.Command{
 var kadvisorCmdV *cobra.Command
 
 var (
-	VerboseLog   bool
+	Verbose      bool
 	CfgFile      string
 	PollDuration time.Duration
 )
@@ -31,13 +32,44 @@ func Execute() {
 
 //Initializes flags
 func init() {
-	KadvisorCmd.PersistentFlags().StringVarP(&CfgFile, "config", "c", "kadvisor.yml", "config file")
-	KadvisorCmd.PersistentFlags().BoolVarP(&VerboseLog, "verbose", "v", false, "verbose logging")
+	KadvisorCmd.PersistentFlags().StringVarP(&CfgFile, "config", "c", "", "config file")
+	KadvisorCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose logging")
 	KadvisorCmd.PersistentFlags().DurationVarP(&PollDuration, "poll", "p", 10*time.Second, "poll duration")
 	kadvisorCmdV = KadvisorCmd
 }
 
 // InitializeConfig initializes a config file with sensible default configuration flags.
 func InitializeConfig() {
-	viper.SetConfigFile(CfgFile)
+	if len(CfgFile) > 0 {
+		viper.SetConfigFile(CfgFile)
+	} else {
+		viper.SetConfigName("config")
+		viper.AddConfigPath("$HOME/.kadvisor")
+		viper.AddConfigPath("/etc/kadvisor")
+		viper.AddConfigPath(".")
+	}
+
+	viper.SetEnvPrefix("kadvisor")
+	viper.AutomaticEnv()
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Debug("Unable to locate Config file")
+	}
+
+	viper.SetDefault("verbose", false)
+	viper.SetDefault("poll", 10*time.Second)
+
+	if kadvisorCmdV.PersistentFlags().Lookup("verbose").Changed {
+		viper.Set("verbose", Verbose)
+	}
+	if kadvisorCmdV.PersistentFlags().Lookup("poll").Changed {
+		viper.Set("poll", PollDuration)
+	}
+
+	if viper.GetBool("verbose") {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	log.WithField("config", viper.AllSettings()).Debug("Configured settings")
 }
