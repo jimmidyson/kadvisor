@@ -1,9 +1,11 @@
 NAME=kadvisor
 VERSION=$(shell cat VERSION)
 
+local: *.go **/*.go
+	godep go build -ldflags "-X main.Version dev" -o build/kadvisor
+
 dev:
-	@docker history $(NAME):dev &> /dev/null \
-		|| docker build -f Dockerfile.dev -t $(NAME):dev .
+	@docker build -f Dockerfile.dev -t $(NAME):dev .
 	@docker run --rm \
 		-v /var/run/docker.sock:/tmp/docker.sock \
 		-v $(PWD):/go/src/github.com/fabric8io/$(NAME)\

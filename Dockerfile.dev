@@ -10,4 +10,4 @@ CMD export GOPATH=/go \
   && export PATH=$GOPATH/bin:$PATH \
   && go get github.com/tools/godep \
   && godep go build -ldflags "-X main.Version dev" -o /bin/kadvisor \
-  && exec /bin/kadvisor
+  && /bin/kadvisor help

@@ -26,8 +26,8 @@ func Execute() {
 
 //Initializes flags
 func init() {
-	KadvisorCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is path/config.yaml)")
-	KadvisorCmd.PersistentFlags().BoolVar(&VerboseLog, "verboseLog", false, "verbose logging")
+	KadvisorCmd.PersistentFlags().StringVarP(&CfgFile, "config", "c", "kadvisor.yml", "config file")
+	KadvisorCmd.PersistentFlags().BoolVarP(&VerboseLog, "verbose", "v", false, "verbose logging")
 	kadvisorCmdV = KadvisorCmd
 }
 
