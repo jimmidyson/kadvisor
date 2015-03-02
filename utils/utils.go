@@ -3,7 +3,7 @@ package utils
 import (
 	"os"
 
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 func CheckErr(err error, s ...string) {

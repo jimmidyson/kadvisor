@@ -8,6 +8,11 @@
 			"Rev": "443a628bc233f634a75bcbdd71fe5350789f1afa"
 		},
 		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.6.5",
+			"Rev": "c0f7e35ed2e48f188c37581b4b743cf7383f85c6"
+		},
+		{
 			"ImportPath": "github.com/armon/consul-api",
 			"Rev": "dcfedd50ed5334f96adee43fc88518a4f095e15c"
 		},

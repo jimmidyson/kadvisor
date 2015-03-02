@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"time"
+
 	"github.com/fabric8io/kadvisor/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,8 +19,11 @@ var KadvisorCmd = &cobra.Command{
 
 var kadvisorCmdV *cobra.Command
 
-var VerboseLog bool
-var CfgFile string
+var (
+	VerboseLog   bool
+	CfgFile      string
+	PollDuration time.Duration
+)
 
 func Execute() {
 	utils.StopOnErr(KadvisorCmd.Execute())
@@ -28,6 +33,7 @@ func Execute() {
 func init() {
 	KadvisorCmd.PersistentFlags().StringVarP(&CfgFile, "config", "c", "kadvisor.yml", "config file")
 	KadvisorCmd.PersistentFlags().BoolVarP(&VerboseLog, "verbose", "v", false, "verbose logging")
+	KadvisorCmd.PersistentFlags().DurationVarP(&PollDuration, "poll", "p", 10*time.Second, "poll duration")
 	kadvisorCmdV = KadvisorCmd
 }
 
