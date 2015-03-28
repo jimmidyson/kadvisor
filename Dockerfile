@@ -4,11 +4,11 @@ VOLUME /mnt/routes
 EXPOSE 8000
 
 COPY . /go/src/github.com/fabric8io/kadvisor
-RUN apk-install go git mercurial \
+RUN apk-install go git mercurial gcc g++ \
   && cd /go/src/github.com/fabric8io/kadvisor \
   && export GOPATH=/go \
   && export PATH=$GOPATH/bin:$PATH \
   && go get github.com/tools/godep \
   && godep go build -ldflags "-X main.Version $(cat VERSION)" -o /bin/kadvisor \
   && rm -rf /go \
-  && apk del go git mercurial
+  && apk del go git mercurial gcc g++

@@ -34,4 +34,4 @@ ifneq ($(CIRCLE_BRANCH), release)
 	echo build-$$CIRCLE_BUILD_NUM > VERSION
 endif
 
-.PHONY: release clean
+.PHONY: release clean build circleci
