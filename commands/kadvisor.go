@@ -53,13 +53,13 @@ func init() {
 	KadvisorCmd.PersistentFlags().DurationVarP(&PollDuration, "poll", "p", 10*time.Second, "poll duration")
 
 	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesMaster, "kubernetes-master", "k", "", "Kubernetes master")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesApiVersion, "kubernetes-api-version", "", "v1beta2", "Kubernetes API version")
-	KadvisorCmd.PersistentFlags().BoolVarP(&KubernetesInsecure, "kubernetes-skip-tls-verify", "", false, "Skip TLS verify of Kubernetes master certificate")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesClientAuthFile, "kubernetes-client-auth-file", "", "", "Kubernetes clien auth file")
+	KadvisorCmd.PersistentFlags().StringVar(&KubernetesApiVersion, "kubernetes-api-version", "v1beta2", "Kubernetes API version")
+	KadvisorCmd.PersistentFlags().BoolVar(&KubernetesInsecure, "kubernetes-skip-tls-verify", false, "Skip TLS verify of Kubernetes master certificate")
+	KadvisorCmd.PersistentFlags().StringVar(&KubernetesClientAuthFile, "kubernetes-client-auth-file", "", "Kubernetes clien auth file")
 
 	KadvisorCmd.PersistentFlags().StringVarP(&InfluxdbSinkUrl, "influxdb", "i", "", "InfluxDB URL")
-	KadvisorCmd.PersistentFlags().StringVarP(&InfluxdbServiceName, "influxdb-service", "", "INFLUXDB", "InfluxDB service name")
-	KadvisorCmd.PersistentFlags().BoolVarP(&InfluxdbSecure, "influxdb-secure", "", false, "Use https for InfluxDB service")
+	KadvisorCmd.PersistentFlags().StringVar(&InfluxdbServiceName, "influxdb-service", "INFLUXDB", "InfluxDB service name")
+	KadvisorCmd.PersistentFlags().BoolVar(&InfluxdbSecure, "influxdb-secure", false, "Use https for InfluxDB service")
 
 	kadvisorCmdV = KadvisorCmd
 }
