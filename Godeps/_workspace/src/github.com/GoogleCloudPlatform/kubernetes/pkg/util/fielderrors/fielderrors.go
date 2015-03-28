@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package errors
+package fielderrors
 
 import (
 	"fmt"
@@ -92,7 +92,7 @@ var _ error = &ValidationError{}
 func (v *ValidationError) Error() string {
 	var s string
 	switch v.Type {
-	case ValidationErrorTypeRequired:
+	case ValidationErrorTypeRequired, ValidationErrorTypeTooLong:
 		s = spew.Sprintf("%s: %s", v.Field, v.Type)
 	default:
 		s = spew.Sprintf("%s: %s '%+v'", v.Field, v.Type, v.BadValue)
@@ -133,8 +133,8 @@ func NewFieldNotFound(field string, value interface{}) *ValidationError {
 	return &ValidationError{ValidationErrorTypeNotFound, field, value, ""}
 }
 
-func NewFieldTooLong(field string, value interface{}) *ValidationError {
-	return &ValidationError{ValidationErrorTypeTooLong, field, value, ""}
+func NewFieldTooLong(field string, value interface{}, maxLength int) *ValidationError {
+	return &ValidationError{ValidationErrorTypeTooLong, field, value, fmt.Sprintf("must have at most %d characters", maxLength)}
 }
 
 type ValidationErrorList []error

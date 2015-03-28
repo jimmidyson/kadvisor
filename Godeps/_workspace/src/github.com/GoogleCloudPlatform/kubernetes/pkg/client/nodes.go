@@ -17,10 +17,12 @@ limitations under the License.
 package client
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/api"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/fields"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/labels"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/watch"
 )
 
 type NodesInterface interface {
@@ -29,10 +31,11 @@ type NodesInterface interface {
 
 type NodeInterface interface {
 	Get(name string) (result *api.Node, err error)
-	Create(minion *api.Node) (*api.Node, error)
+	Create(node *api.Node) (*api.Node, error)
 	List() (*api.NodeList, error)
 	Delete(name string) error
 	Update(*api.Node) (*api.Node, error)
+	Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error)
 }
 
 // nodes implements NodesInterface
@@ -40,13 +43,13 @@ type nodes struct {
 	r *Client
 }
 
-// newNodes returns a nodes object. Uses "minions" as the
-// URL resource name for v1beta1 and v1beta2.
+// newNodes returns a nodes object.
 func newNodes(c *Client) *nodes {
 	return &nodes{c}
 }
 
 // resourceName returns node's URL resource name based on resource version.
+// Uses "minions" as the URL resource name for v1beta1 and v1beta2.
 func (c *nodes) resourceName() string {
 	if api.PreV1Beta3(c.r.APIVersion()) {
 		return "minions"
@@ -55,9 +58,9 @@ func (c *nodes) resourceName() string {
 }
 
 // Create creates a new node.
-func (c *nodes) Create(minion *api.Node) (*api.Node, error) {
+func (c *nodes) Create(node *api.Node) (*api.Node, error) {
 	result := &api.Node{}
-	err := c.r.Post().Resource(c.resourceName()).Body(minion).Do().Into(result)
+	err := c.r.Post().Resource(c.resourceName()).Body(node).Do().Into(result)
 	return result, err
 }
 
@@ -70,10 +73,6 @@ func (c *nodes) List() (*api.NodeList, error) {
 
 // Get gets an existing node.
 func (c *nodes) Get(name string) (*api.Node, error) {
-	if len(name) == 0 {
-		return nil, errors.New("name is required parameter to Get")
-	}
-
 	result := &api.Node{}
 	err := c.r.Get().Resource(c.resourceName()).Name(name).Do().Into(result)
 	return result, err
@@ -85,12 +84,24 @@ func (c *nodes) Delete(name string) error {
 }
 
 // Update updates an existing node.
-func (c *nodes) Update(minion *api.Node) (*api.Node, error) {
+func (c *nodes) Update(node *api.Node) (*api.Node, error) {
 	result := &api.Node{}
-	if len(minion.ResourceVersion) == 0 {
-		err := fmt.Errorf("invalid update object, missing resource version: %v", minion)
+	if len(node.ResourceVersion) == 0 {
+		err := fmt.Errorf("invalid update object, missing resource version: %v", node)
 		return nil, err
 	}
-	err := c.r.Put().Resource(c.resourceName()).Name(minion.Name).Body(minion).Do().Into(result)
+	err := c.r.Put().Resource(c.resourceName()).Name(node.Name).Body(node).Do().Into(result)
 	return result, err
+}
+
+// Watch returns a watch.Interface that watches the requested nodes.
+func (c *nodes) Watch(label labels.Selector, field fields.Selector, resourceVersion string) (watch.Interface, error) {
+	return c.r.Get().
+		Prefix("watch").
+		Namespace(api.NamespaceAll).
+		Resource(c.resourceName()).
+		Param("resourceVersion", resourceVersion).
+		LabelsSelectorParam(api.LabelSelectorQueryParam(c.r.APIVersion()), label).
+		FieldsSelectorParam(api.FieldSelectorQueryParam(c.r.APIVersion()), field).
+		Watch()
 }

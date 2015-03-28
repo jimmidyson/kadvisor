@@ -63,28 +63,40 @@ func TestSetDefaultSecret(t *testing.T) {
 }
 
 func TestSetDefaulEndpointsProtocol(t *testing.T) {
-	in := &current.Endpoints{}
+	in := &current.Endpoints{Subsets: []current.EndpointSubset{
+		{Ports: []current.EndpointPort{{}, {Protocol: "UDP"}, {}}},
+	}}
 	obj := roundTrip(t, runtime.Object(in))
 	out := obj.(*current.Endpoints)
 
-	if out.Protocol != current.ProtocolTCP {
-		t.Errorf("Expected protocol %s, got %s", current.ProtocolTCP, out.Protocol)
+	for i := range out.Subsets {
+		for j := range out.Subsets[i].Ports {
+			if in.Subsets[i].Ports[j].Protocol == "" {
+				if out.Subsets[i].Ports[j].Protocol != current.ProtocolTCP {
+					t.Errorf("Expected protocol %s, got %s", current.ProtocolTCP, out.Subsets[i].Ports[j].Protocol)
+				}
+			} else {
+				if out.Subsets[i].Ports[j].Protocol != in.Subsets[i].Ports[j].Protocol {
+					t.Errorf("Expected protocol %s, got %s", in.Subsets[i].Ports[j].Protocol, out.Subsets[i].Ports[j].Protocol)
+				}
+			}
+		}
 	}
 }
 
-func TestSetDefaulServiceDestinationPort(t *testing.T) {
+func TestSetDefaulServiceTargetPort(t *testing.T) {
 	in := &current.Service{Spec: current.ServiceSpec{Port: 1234}}
 	obj := roundTrip(t, runtime.Object(in))
 	out := obj.(*current.Service)
-	if out.Spec.ContainerPort.Kind != util.IntstrInt || out.Spec.ContainerPort.IntVal != 1234 {
-		t.Errorf("Expected ContainerPort to be defaulted, got %s", out.Spec.ContainerPort)
+	if out.Spec.TargetPort.Kind != util.IntstrInt || out.Spec.TargetPort.IntVal != 1234 {
+		t.Errorf("Expected TargetPort to be defaulted, got %s", out.Spec.TargetPort)
 	}
 
-	in = &current.Service{Spec: current.ServiceSpec{Port: 1234, ContainerPort: util.NewIntOrStringFromInt(5678)}}
+	in = &current.Service{Spec: current.ServiceSpec{Port: 1234, TargetPort: util.NewIntOrStringFromInt(5678)}}
 	obj = roundTrip(t, runtime.Object(in))
 	out = obj.(*current.Service)
-	if out.Spec.ContainerPort.Kind != util.IntstrInt || out.Spec.ContainerPort.IntVal != 5678 {
-		t.Errorf("Expected ContainerPort to be unchanged, got %s", out.Spec.ContainerPort)
+	if out.Spec.TargetPort.Kind != util.IntstrInt || out.Spec.TargetPort.IntVal != 5678 {
+		t.Errorf("Expected TargetPort to be unchanged, got %s", out.Spec.TargetPort)
 	}
 }
 
@@ -95,5 +107,31 @@ func TestSetDefaultNamespace(t *testing.T) {
 
 	if s2.Status.Phase != current.NamespaceActive {
 		t.Errorf("Expected phase %v, got %v", current.NamespaceActive, s2.Status.Phase)
+	}
+}
+
+func TestSetDefaultPodSpecHostNetwork(t *testing.T) {
+	portNum := 8080
+	s := current.PodSpec{}
+	s.HostNetwork = true
+	s.Containers = []current.Container{
+		{
+			Ports: []current.ContainerPort{
+				{
+					ContainerPort: portNum,
+				},
+			},
+		},
+	}
+	pod := &current.Pod{
+		Spec: s,
+	}
+	obj2 := roundTrip(t, runtime.Object(pod))
+	pod2 := obj2.(*current.Pod)
+	s2 := pod2.Spec
+
+	hostPortNum := s2.Containers[0].Ports[0].HostPort
+	if hostPortNum != portNum {
+		t.Errorf("Expected container port to be defaulted, was made %d instead of %d", hostPortNum, portNum)
 	}
 }

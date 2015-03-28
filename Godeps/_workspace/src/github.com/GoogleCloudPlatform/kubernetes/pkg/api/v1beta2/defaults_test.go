@@ -61,13 +61,55 @@ func TestSetDefaultSecret(t *testing.T) {
 	}
 }
 
+func TestSetDefaulEndpointsLegacy(t *testing.T) {
+	in := &current.Endpoints{
+		Protocol:   "UDP",
+		Endpoints:  []string{"1.2.3.4:93", "5.6.7.8:76"},
+		TargetRefs: []current.EndpointObjectReference{{Endpoint: "1.2.3.4:93", ObjectReference: current.ObjectReference{ID: "foo"}}},
+	}
+	obj := roundTrip(t, runtime.Object(in))
+	out := obj.(*current.Endpoints)
+
+	if len(out.Subsets) != 2 {
+		t.Errorf("Expected 2 EndpointSubsets, got %d (%#v)", len(out.Subsets), out.Subsets)
+	}
+	expected := []current.EndpointSubset{
+		{
+			Addresses: []current.EndpointAddress{{IP: "1.2.3.4", TargetRef: &current.ObjectReference{ID: "foo"}}},
+			Ports:     []current.EndpointPort{{Protocol: current.ProtocolUDP, Port: 93}},
+		},
+		{
+			Addresses: []current.EndpointAddress{{IP: "5.6.7.8"}},
+			Ports:     []current.EndpointPort{{Protocol: current.ProtocolUDP, Port: 76}},
+		},
+	}
+	if !reflect.DeepEqual(out.Subsets, expected) {
+		t.Errorf("Expected %#v, got %#v", expected, out.Subsets)
+	}
+}
+
 func TestSetDefaulEndpointsProtocol(t *testing.T) {
-	in := &current.Endpoints{}
+	in := &current.Endpoints{Subsets: []current.EndpointSubset{
+		{Ports: []current.EndpointPort{{}, {Protocol: "UDP"}, {}}},
+	}}
 	obj := roundTrip(t, runtime.Object(in))
 	out := obj.(*current.Endpoints)
 
 	if out.Protocol != current.ProtocolTCP {
 		t.Errorf("Expected protocol %s, got %s", current.ProtocolTCP, out.Protocol)
+	}
+	for i := range out.Subsets {
+		for j := range out.Subsets[i].Ports {
+			if in.Subsets[i].Ports[j].Protocol == "" {
+				if out.Subsets[i].Ports[j].Protocol != current.ProtocolTCP {
+					t.Errorf("Expected protocol %s, got %s", current.ProtocolTCP, out.Subsets[i].Ports[j].Protocol)
+				}
+			} else {
+				if out.Subsets[i].Ports[j].Protocol != in.Subsets[i].Ports[j].Protocol {
+					t.Errorf("Expected protocol %s, got %s", in.Subsets[i].Ports[j].Protocol, out.Subsets[i].Ports[j].Protocol)
+				}
+			}
+		}
 	}
 }
 
@@ -78,5 +120,30 @@ func TestSetDefaultNamespace(t *testing.T) {
 
 	if s2.Status.Phase != current.NamespaceActive {
 		t.Errorf("Expected phase %v, got %v", current.NamespaceActive, s2.Status.Phase)
+	}
+}
+
+func TestSetDefaultContainerManifestHostNetwork(t *testing.T) {
+	portNum := 8080
+	s := current.ContainerManifest{}
+	s.HostNetwork = true
+	s.Containers = []current.Container{
+		{
+			Ports: []current.ContainerPort{
+				{
+					ContainerPort: portNum,
+				},
+			},
+		},
+	}
+	obj2 := roundTrip(t, runtime.Object(&current.ContainerManifestList{
+		Items: []current.ContainerManifest{s},
+	}))
+	sList2 := obj2.(*current.ContainerManifestList)
+	s2 := sList2.Items[0]
+
+	hostPortNum := s2.Containers[0].Ports[0].HostPort
+	if hostPortNum != portNum {
+		t.Errorf("Expected container port to be defaulted, was made %d instead of %d", hostPortNum, portNum)
 	}
 }

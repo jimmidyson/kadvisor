@@ -84,6 +84,7 @@ func init() {
 			out.GenerateName = in.GenerateName
 			out.UID = in.UID
 			out.CreationTimestamp = in.CreationTimestamp
+			out.DeletionTimestamp = in.DeletionTimestamp
 			out.SelfLink = in.SelfLink
 			if len(in.ResourceVersion) > 0 {
 				v, err := strconv.ParseUint(in.ResourceVersion, 10, 64)
@@ -100,6 +101,7 @@ func init() {
 			out.GenerateName = in.GenerateName
 			out.UID = in.UID
 			out.CreationTimestamp = in.CreationTimestamp
+			out.DeletionTimestamp = in.DeletionTimestamp
 			out.SelfLink = in.SelfLink
 			if in.ResourceVersion != 0 {
 				out.ResourceVersion = strconv.FormatUint(in.ResourceVersion, 10)
@@ -186,7 +188,7 @@ func init() {
 			if err := s.Convert(&in.Conditions, &out.Conditions, 0); err != nil {
 				return err
 			}
-			if err := s.Convert(&in.Info, &out.Info, 0); err != nil {
+			if err := s.Convert(&in.ContainerStatuses, &out.Info, 0); err != nil {
 				return err
 			}
 			out.Message = in.Message
@@ -202,7 +204,7 @@ func init() {
 			if err := s.Convert(&in.Conditions, &out.Conditions, 0); err != nil {
 				return err
 			}
-			if err := s.Convert(&in.Info, &out.Info, 0); err != nil {
+			if err := s.Convert(&in.Info, &out.ContainerStatuses, 0); err != nil {
 				return err
 			}
 
@@ -224,6 +226,78 @@ func init() {
 				return err
 			}
 			out.Host = in.Host
+			return nil
+		},
+
+		func(in *[]newer.ContainerStatus, out *PodInfo, s conversion.Scope) error {
+			*out = make(map[string]ContainerStatus)
+			for _, st := range *in {
+				v := ContainerStatus{}
+				if err := s.Convert(&st, &v, 0); err != nil {
+					return err
+				}
+				(*out)[st.Name] = v
+			}
+			return nil
+		},
+		func(in *PodInfo, out *[]newer.ContainerStatus, s conversion.Scope) error {
+			for k, v := range *in {
+				st := newer.ContainerStatus{}
+				if err := s.Convert(&v, &st, 0); err != nil {
+					return err
+				}
+				st.Name = k
+				*out = append(*out, st)
+			}
+			return nil
+		},
+
+		func(in *newer.ContainerStatus, out *ContainerStatus, s conversion.Scope) error {
+			if err := s.Convert(&in.State, &out.State, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.LastTerminationState, &out.LastTerminationState, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.Ready, &out.Ready, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.RestartCount, &out.RestartCount, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.Image, &out.Image, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.ImageID, &out.ImageID, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.ContainerID, &out.ContainerID, 0); err != nil {
+				return err
+			}
+			return nil
+		},
+		func(in *ContainerStatus, out *newer.ContainerStatus, s conversion.Scope) error {
+			if err := s.Convert(&in.State, &out.State, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.LastTerminationState, &out.LastTerminationState, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.Ready, &out.Ready, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.RestartCount, &out.RestartCount, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.Image, &out.Image, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.ImageID, &out.ImageID, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.ContainerID, &out.ContainerID, 0); err != nil {
+				return err
+			}
 			return nil
 		},
 
@@ -600,6 +674,7 @@ func init() {
 			}
 			out.DNSPolicy = DNSPolicy(in.DNSPolicy)
 			out.Version = "v1beta2"
+			out.HostNetwork = in.HostNetwork
 			return nil
 		},
 		func(in *ContainerManifest, out *newer.PodSpec, s conversion.Scope) error {
@@ -613,6 +688,7 @@ func init() {
 				return err
 			}
 			out.DNSPolicy = newer.DNSPolicy(in.DNSPolicy)
+			out.HostNetwork = in.HostNetwork
 			return nil
 		},
 
@@ -634,7 +710,7 @@ func init() {
 			}
 			out.CreateExternalLoadBalancer = in.Spec.CreateExternalLoadBalancer
 			out.PublicIPs = in.Spec.PublicIPs
-			out.ContainerPort = in.Spec.ContainerPort
+			out.ContainerPort = in.Spec.TargetPort
 			out.PortalIP = in.Spec.PortalIP
 			if err := s.Convert(&in.Spec.SessionAffinity, &out.SessionAffinity, 0); err != nil {
 				return err
@@ -660,7 +736,7 @@ func init() {
 			}
 			out.Spec.CreateExternalLoadBalancer = in.CreateExternalLoadBalancer
 			out.Spec.PublicIPs = in.PublicIPs
-			out.Spec.ContainerPort = in.ContainerPort
+			out.Spec.TargetPort = in.ContainerPort
 			out.Spec.PortalIP = in.PortalIP
 			if err := s.Convert(&in.SessionAffinity, &out.Spec.SessionAffinity, 0); err != nil {
 				return err
@@ -700,7 +776,7 @@ func init() {
 			out.PodCIDR = in.Spec.PodCIDR
 			out.ExternalID = in.Spec.ExternalID
 			out.Unschedulable = in.Spec.Unschedulable
-			return s.Convert(&in.Spec.Capacity, &out.NodeResources.Capacity, 0)
+			return s.Convert(&in.Status.Capacity, &out.NodeResources.Capacity, 0)
 		},
 		func(in *Minion, out *newer.Node, s conversion.Scope) error {
 			if err := s.Convert(&in.TypeMeta, &out.TypeMeta, 0); err != nil {
@@ -732,7 +808,7 @@ func init() {
 			out.Spec.PodCIDR = in.PodCIDR
 			out.Spec.ExternalID = in.ExternalID
 			out.Spec.Unschedulable = in.Unschedulable
-			return s.Convert(&in.NodeResources.Capacity, &out.Spec.Capacity, 0)
+			return s.Convert(&in.NodeResources.Capacity, &out.Status.Capacity, 0)
 		},
 
 		func(in *newer.LimitRange, out *LimitRange, s conversion.Scope) error {
@@ -1054,6 +1130,9 @@ func init() {
 			if err := s.Convert(&in.Secret, &out.Secret, 0); err != nil {
 				return err
 			}
+			if err := s.Convert(&in.NFS, &out.NFS, 0); err != nil {
+				return err
+			}
 			return nil
 		},
 		func(in *VolumeSource, out *newer.VolumeSource, s conversion.Scope) error {
@@ -1070,6 +1149,9 @@ func init() {
 				return err
 			}
 			if err := s.Convert(&in.Secret, &out.Secret, 0); err != nil {
+				return err
+			}
+			if err := s.Convert(&in.NFS, &out.NFS, 0); err != nil {
 				return err
 			}
 			return nil
@@ -1171,21 +1253,42 @@ func init() {
 			if err := s.Convert(&in.ObjectMeta, &out.TypeMeta, 0); err != nil {
 				return err
 			}
-			if err := s.Convert(&in.Protocol, &out.Protocol, 0); err != nil {
+			if err := s.Convert(&in.Subsets, &out.Subsets, 0); err != nil {
 				return err
 			}
-			for i := range in.Endpoints {
-				ep := &in.Endpoints[i]
-				hostPort := net.JoinHostPort(ep.IP, strconv.Itoa(ep.Port))
-				out.Endpoints = append(out.Endpoints, hostPort)
-				if ep.TargetRef != nil {
-					target := EndpointObjectReference{
-						Endpoint: hostPort,
-					}
-					if err := s.Convert(ep.TargetRef, &target.ObjectReference, 0); err != nil {
+			// Produce back-compat fields.
+			firstPortName := ""
+			if len(in.Subsets) > 0 {
+				if len(in.Subsets[0].Ports) > 0 {
+					if err := s.Convert(&in.Subsets[0].Ports[0].Protocol, &out.Protocol, 0); err != nil {
 						return err
 					}
-					out.TargetRefs = append(out.TargetRefs, target)
+					firstPortName = in.Subsets[0].Ports[0].Name
+				}
+			} else {
+				out.Protocol = ProtocolTCP
+			}
+			for i := range in.Subsets {
+				ss := &in.Subsets[i]
+				for j := range ss.Ports {
+					ssp := &ss.Ports[j]
+					if ssp.Name != firstPortName {
+						continue
+					}
+					for k := range ss.Addresses {
+						ssa := &ss.Addresses[k]
+						hostPort := net.JoinHostPort(ssa.IP, strconv.Itoa(ssp.Port))
+						out.Endpoints = append(out.Endpoints, hostPort)
+						if ssa.TargetRef != nil {
+							target := EndpointObjectReference{
+								Endpoint: hostPort,
+							}
+							if err := s.Convert(ssa.TargetRef, &target.ObjectReference, 0); err != nil {
+								return err
+							}
+							out.TargetRefs = append(out.TargetRefs, target)
+						}
+					}
 				}
 			}
 			return nil
@@ -1197,32 +1300,10 @@ func init() {
 			if err := s.Convert(&in.TypeMeta, &out.ObjectMeta, 0); err != nil {
 				return err
 			}
-			if err := s.Convert(&in.Protocol, &out.Protocol, 0); err != nil {
+			if err := s.Convert(&in.Subsets, &out.Subsets, 0); err != nil {
 				return err
 			}
-			for i := range in.Endpoints {
-				out.Endpoints = append(out.Endpoints, newer.Endpoint{})
-				ep := &out.Endpoints[i]
-				host, port, err := net.SplitHostPort(in.Endpoints[i])
-				if err != nil {
-					return err
-				}
-				ep.IP = host
-				pn, err := strconv.Atoi(port)
-				if err != nil {
-					return err
-				}
-				ep.Port = pn
-				for j := range in.TargetRefs {
-					if in.TargetRefs[j].Endpoint != in.Endpoints[i] {
-						continue
-					}
-					ep.TargetRef = &newer.ObjectReference{}
-					if err := s.Convert(&in.TargetRefs[j].ObjectReference, ep.TargetRef, 0); err != nil {
-						return err
-					}
-				}
-			}
+			// Back-compat fields are handled in the defaulting phase.
 			return nil
 		},
 
@@ -1283,7 +1364,6 @@ func init() {
 				*out = NodeConditionKind(*in)
 				break
 			}
-
 			return nil
 		},
 		func(in *NodeConditionKind, out *newer.NodeConditionType, s conversion.Scope) error {
@@ -1300,7 +1380,35 @@ func init() {
 				*out = newer.NodeConditionType(*in)
 				break
 			}
+			return nil
+		},
 
+		func(in *newer.ConditionStatus, out *ConditionStatus, s conversion.Scope) error {
+			switch *in {
+			case newer.ConditionTrue:
+				*out = ConditionFull
+				break
+			case newer.ConditionFalse:
+				*out = ConditionNone
+				break
+			default:
+				*out = ConditionStatus(*in)
+				break
+			}
+			return nil
+		},
+		func(in *ConditionStatus, out *newer.ConditionStatus, s conversion.Scope) error {
+			switch *in {
+			case ConditionFull:
+				*out = newer.ConditionTrue
+				break
+			case ConditionNone:
+				*out = newer.ConditionFalse
+				break
+			default:
+				*out = newer.ConditionStatus(*in)
+				break
+			}
 			return nil
 		},
 
@@ -1351,6 +1459,7 @@ func init() {
 
 			return nil
 		},
+
 		func(in *Binding, out *newer.Binding, s conversion.Scope) error {
 			if err := s.DefaultConvert(in, out, conversion.IgnoreMissingFields); err != nil {
 				return err
@@ -1369,6 +1478,14 @@ func init() {
 			out.PodID = in.Name
 			return nil
 		},
+		func(in *newer.SecretVolumeSource, out *SecretVolumeSource, s conversion.Scope) error {
+			out.Target.ID = in.SecretName
+			return nil
+		},
+		func(in *SecretVolumeSource, out *newer.SecretVolumeSource, s conversion.Scope) error {
+			out.SecretName = in.Target.ID
+			return nil
+		},
 	)
 	if err != nil {
 		// If one of the conversion functions is malformed, detect it immediately.
@@ -1376,7 +1493,7 @@ func init() {
 	}
 
 	// Add field conversion funcs.
-	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta1", "pods",
+	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta1", "Pod",
 		func(label, value string) (string, string, error) {
 			switch label {
 			case "name":
@@ -1396,7 +1513,22 @@ func init() {
 		// If one of the conversion functions is malformed, detect it immediately.
 		panic(err)
 	}
-	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta1", "events",
+	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta1", "ReplicationController",
+		func(label, value string) (string, string, error) {
+			switch label {
+			case "name":
+				return "name", value, nil
+			case "currentState.replicas":
+				return "status.replicas", value, nil
+			default:
+				return "", "", fmt.Errorf("field label not supported: %s", label)
+			}
+		})
+	if err != nil {
+		// If one of the conversion functions is malformed, detect it immediately.
+		panic(err)
+	}
+	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta1", "Event",
 		func(label, value string) (string, string, error) {
 			switch label {
 			case "involvedObject.kind",
@@ -1410,6 +1542,19 @@ func init() {
 				return label, value, nil
 			case "involvedObject.id":
 				return "involvedObject.name", value, nil
+			default:
+				return "", "", fmt.Errorf("field label not supported: %s", label)
+			}
+		})
+	if err != nil {
+		// If one of the conversion functions is malformed, detect it immediately.
+		panic(err)
+	}
+	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta1", "Namespace",
+		func(label, value string) (string, string, error) {
+			switch label {
+			case "status.phase":
+				return label, value, nil
 			default:
 				return "", "", fmt.Errorf("field label not supported: %s", label)
 			}

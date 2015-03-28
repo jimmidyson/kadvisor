@@ -17,19 +17,20 @@ limitations under the License.
 package testing
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/api"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/api/resource"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/fields"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/labels"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/runtime"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/types"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
-
 	"github.com/fsouza/go-dockerclient"
 	"github.com/google/gofuzz"
+
 	"speter.net/go/exp/math/dec/inf"
 )
 
@@ -87,6 +88,11 @@ func FuzzerFor(t *testing.T, version string, src rand.Source) *fuzz.Fuzzer {
 		func(j *api.ListMeta, c fuzz.Continue) {
 			j.ResourceVersion = strconv.FormatUint(c.RandUint64(), 10)
 			j.SelfLink = c.RandString()
+		},
+		func(j *api.ListOptions, c fuzz.Continue) {
+			// TODO: add some parsing
+			j.LabelSelector, _ = labels.Parse("a=b")
+			j.FieldSelector, _ = fields.ParseSelector("a=b")
 		},
 		func(j *api.PodPhase, c fuzz.Continue) {
 			statuses := []api.PodPhase{api.PodPending, api.PodRunning, api.PodFailed, api.PodUnknown}
@@ -167,7 +173,7 @@ func FuzzerFor(t *testing.T, version string, src rand.Source) *fuzz.Fuzzer {
 		func(vs *api.VolumeSource, c fuzz.Continue) {
 			// Exactly one of the fields should be set.
 			//FIXME: the fuzz can still end up nil.  What if fuzz allowed me to say that?
-			fuzzOneOf(c, &vs.HostPath, &vs.EmptyDir, &vs.GCEPersistentDisk, &vs.GitRepo, &vs.Secret)
+			fuzzOneOf(c, &vs.HostPath, &vs.EmptyDir, &vs.GCEPersistentDisk, &vs.GitRepo, &vs.Secret, &vs.NFS)
 		},
 		func(d *api.DNSPolicy, c fuzz.Continue) {
 			policies := []api.DNSPolicy{api.DNSClusterFirst, api.DNSDefault}
@@ -198,13 +204,11 @@ func FuzzerFor(t *testing.T, version string, src rand.Source) *fuzz.Fuzzer {
 			c.FuzzNoCustom(s) // fuzz self without calling this function again
 			s.Type = api.SecretTypeOpaque
 		},
+		func(s *api.NamespaceSpec, c fuzz.Continue) {
+			s.Finalizers = []api.FinalizerName{api.FinalizerKubernetes}
+		},
 		func(s *api.NamespaceStatus, c fuzz.Continue) {
 			s.Phase = api.NamespaceActive
-		},
-		func(ep *api.Endpoint, c fuzz.Continue) {
-			// TODO: If our API used a particular type for IP fields we could just catch that here.
-			ep.IP = fmt.Sprintf("%d.%d.%d.%d", c.Rand.Intn(256), c.Rand.Intn(256), c.Rand.Intn(256), c.Rand.Intn(256))
-			ep.Port = c.Rand.Intn(65536)
 		},
 		func(http *api.HTTPGetAction, c fuzz.Continue) {
 			c.FuzzNoCustom(http)        // fuzz self without calling this function again
@@ -212,11 +216,11 @@ func FuzzerFor(t *testing.T, version string, src rand.Source) *fuzz.Fuzzer {
 		},
 		func(ss *api.ServiceSpec, c fuzz.Continue) {
 			c.FuzzNoCustom(ss) // fuzz self without calling this function again
-			switch ss.ContainerPort.Kind {
+			switch ss.TargetPort.Kind {
 			case util.IntstrInt:
-				ss.ContainerPort.IntVal = 1 + ss.ContainerPort.IntVal%65535 // non-zero
+				ss.TargetPort.IntVal = 1 + ss.TargetPort.IntVal%65535 // non-zero
 			case util.IntstrString:
-				ss.ContainerPort.StrVal = "x" + ss.ContainerPort.StrVal // non-empty
+				ss.TargetPort.StrVal = "x" + ss.TargetPort.StrVal // non-empty
 			}
 		},
 	)
