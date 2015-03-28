@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	kube_client "github.com/GoogleCloudPlatform/kubernetes/pkg/client"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/clientauth"
 )
 
 var KadvisorCmd = &cobra.Command{
@@ -28,12 +29,7 @@ var (
 	KubernetesMaster         string
 	KubernetesApiVersion     string
 	KubernetesInsecure       bool
-	KubernetesCACertFile     string
-	KubernetesClientCertFile string
-	KubernetesClientKeyFile  string
-	KubernetesCACertData     string
-	KubernetesClientCertData string
-	KubernetesClientKeyData  string
+	KubernetesClientAuthFile string
 	InfluxdbSinkUrl          string
 	InfluxdbServiceName      string
 	InfluxdbSecure           bool
@@ -59,16 +55,11 @@ func init() {
 	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesMaster, "kubernetes-master", "k", "", "Kubernetes master")
 	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesApiVersion, "kubernetes-api-version", "", "v1beta2", "Kubernetes API version")
 	KadvisorCmd.PersistentFlags().BoolVarP(&KubernetesInsecure, "kubernetes-skip-tls-verify", "", false, "Skip TLS verify of Kubernetes master certificate")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesCACertFile, "kubernetes-ca-cert-file", "", "", "Path to a certificate file for the certificate authority")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesClientCertFile, "kubernetes-client-cert-file", "", "", "Path to a client certificate file for TLS")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesClientKeyFile, "kubernetes-client-key-file", "", "", "Path to a client key file for TLS")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesCACertData, "kubernetes-ca-cert-data", "", "", "Base 64 encoded CA certificate data for the certificate authority")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesClientCertData, "kubernetes-client-cert-data", "", "", "Base 64 encoded client certificate data for TLS")
-	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesClientKeyData, "kubernetes-client-key-data", "", "", "Base 64 encoded client key data for TLS")
+	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesClientAuthFile, "kubernetes-client-auth-file", "", "", "Kubernetes clien auth file")
 
 	KadvisorCmd.PersistentFlags().StringVarP(&InfluxdbSinkUrl, "influxdb", "i", "", "InfluxDB URL")
 	KadvisorCmd.PersistentFlags().StringVarP(&InfluxdbServiceName, "influxdb-service", "", "INFLUXDB", "InfluxDB service name")
-	KadvisorCmd.PersistentFlags().BoolVarP(&InfluxdbSecure, "influxdb-secure", "", false, "InfluxDB service name")
+	KadvisorCmd.PersistentFlags().BoolVarP(&InfluxdbSecure, "influxdb-secure", "", false, "Use https for InfluxDB service")
 
 	kadvisorCmdV = KadvisorCmd
 }
@@ -121,24 +112,6 @@ func InitializeConfig() {
 	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-skip-tls-verify").Changed {
 		viper.Set("kubernetesInsecure", KubernetesInsecure)
 	}
-	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-ca-cert-file").Changed {
-		viper.Set("kubernetesCACertFile", KubernetesCACertFile)
-	}
-	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-client-cert-file").Changed {
-		viper.Set("kubernetesClientCertFile", KubernetesClientCertFile)
-	}
-	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-client-key-file").Changed {
-		viper.Set("kubernetesClientKeyFile", KubernetesClientKeyFile)
-	}
-	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-ca-cert-data").Changed {
-		viper.Set("kubernetesCACertData", KubernetesCACertData)
-	}
-	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-client-cert-data").Changed {
-		viper.Set("kubernetesClientCertData", KubernetesClientCertData)
-	}
-	if kadvisorCmdV.PersistentFlags().Lookup("kubernetes-client-key-data").Changed {
-		viper.Set("kubernetesClientKeyData", KubernetesClientKeyData)
-	}
 
 	if kadvisorCmdV.PersistentFlags().Lookup("influxdb").Changed {
 		viper.Set("influxdb", InfluxdbSinkUrl)
@@ -158,20 +131,26 @@ func InitializeConfig() {
 }
 
 func InitializeKubeClient() {
-	KubernetesClient = kube_client.NewOrDie(&kube_client.Config{
+	kubeConfig := kube_client.Config{
 		Host:     viper.GetString("kubernetesMaster"),
 		Version:  viper.GetString("kubernetesApiVersion"),
 		Insecure: viper.GetBool("kubernetesInsecure"),
-		TLSClientConfig: kube_client.TLSClientConfig{
-			CAFile:   viper.GetString("kubernetesCACertFile"),
-			CertFile: viper.GetString("kubernetesClientCertFile"),
-			KeyFile:  viper.GetString("kubernetesClientKeyFile"),
-			CAData:   []byte(viper.GetString("kubernetesCACertData")),
-			CertData: []byte(viper.GetString("kubernetesClientCertData")),
-			KeyData:  []byte(viper.GetString("kubernetesClientKeyData")),
-		},
-	})
+	}
+
+	clientAuthFile := viper.GetString("kubernetesClientAuthFile")
+	if len(clientAuthFile) > 0 {
+		clientAuth, err := clientauth.LoadFromFile(clientAuthFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		kubeConfig, err = clientAuth.MergeWithConfig(kubeConfig)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	KubernetesClient = kube_client.NewOrDie(&kubeConfig)
 	if _, err := KubernetesClient.ServerVersion(); err != nil {
-		log.Error(err)
+		log.Fatal(err)
 	}
 }
