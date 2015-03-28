@@ -220,9 +220,11 @@ Usage: {{if .Runnable}}
 Aliases:
   {{.NameAndAliases}}
 {{end}}{{if .HasExample}}
+
 Examples:
 {{ .Example }}
 {{end}}{{ if .HasSubCommands}}
+
 Available Commands: {{range .Commands}}{{if .Runnable}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}
 {{end}}
@@ -246,7 +248,7 @@ func (c *Command) HelpTemplate() string {
 	if c.HasParent() {
 		return c.parent.HelpTemplate()
 	} else {
-		return `{{.Long | trim}}
+		return `{{with or .Long .Short }}{{. | trim}}{{end}}
 {{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}
 `
 	}

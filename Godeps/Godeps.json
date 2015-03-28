@@ -28,6 +28,11 @@
 			"Rev": "8a7a127352263439e22253a58628d37a93fdaeb2"
 		},
 		{
+			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/clientauth",
+			"Comment": "v0.13.1-dev-714-g8a7a127",
+			"Rev": "8a7a127352263439e22253a58628d37a93fdaeb2"
+		},
+		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/conversion",
 			"Comment": "v0.13.1-dev-714-g8a7a127",
 			"Rev": "8a7a127352263439e22253a58628d37a93fdaeb2"
@@ -74,8 +79,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.6.6-2-g2cea0f0",
-			"Rev": "2cea0f0d141f56fae06df5b813ec4119d1c8ccbd"
+			"Comment": "v0.7.2-2-ge00ed35",
+			"Rev": "e00ed35f54d331c88f1867a18a7bfc4e4e4685ac"
 		},
 		{
 			"ImportPath": "github.com/armon/consul-api",
@@ -83,18 +88,18 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdhttp/httptypes",
-			"Comment": "v2.0.4-247-g7e7bc76",
-			"Rev": "7e7bc76038300b7dfed39d2ddc5edaab3af0da5a"
+			"Comment": "v2.0.4-312-g9a33678",
+			"Rev": "9a33678878e57410a67d07d39fa8502e85797aeb"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/pkg/types",
-			"Comment": "v2.0.4-247-g7e7bc76",
-			"Rev": "7e7bc76038300b7dfed39d2ddc5edaab3af0da5a"
+			"Comment": "v2.0.4-312-g9a33678",
+			"Rev": "9a33678878e57410a67d07d39fa8502e85797aeb"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.4.6-8-g60e12ca",
-			"Rev": "60e12cac3db8ffce00b576b4af0e7b0a968f1003"
+			"Comment": "v0.4.6-10-g2af7a95",
+			"Rev": "2af7a9525b09fb715b215a1fb852dd4814ef52b5"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
@@ -102,7 +107,7 @@
 		},
 		{
 			"ImportPath": "github.com/ghodss/yaml",
-			"Rev": "588cb435e59ee8b6c2795482887755841ad67207"
+			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
 		},
 		{
 			"ImportPath": "github.com/golang/glog",
@@ -110,8 +115,8 @@
 		},
 		{
 			"ImportPath": "github.com/google/cadvisor/info/v1",
-			"Comment": "0.10.1-82-gd8b9a50",
-			"Rev": "d8b9a50994b6952f95e2cbd1afa8e24019aeae6b"
+			"Comment": "0.10.1-114-ge0b82df",
+			"Rev": "e0b82dfd7c71ddc2edc857a413cedff43236c71e"
 		},
 		{
 			"ImportPath": "github.com/google/gofuzz",
@@ -136,7 +141,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
-			"Rev": "6de96b849c2b94c84e613eabbefe087e495ae787"
+			"Rev": "79bd93d369fb73d640179208d4e2b1a748915567"
 		},
 		{
 			"ImportPath": "github.com/spf13/jwalterweatherman",
@@ -175,7 +180,7 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "0b492c5a9642fa1365f77ad20bbb259a25572507"
+			"Rev": "7dbad50ab5b31073856416cdcfeb2796d682f844"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
