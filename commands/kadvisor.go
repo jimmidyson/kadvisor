@@ -35,7 +35,7 @@ var (
 	InfluxdbSecure           bool
 )
 
-var KubernetesClient *kube_client.Client
+var kubernetesClient *kube_client.Client
 
 func Execute() {
 	AddCommands()
@@ -53,7 +53,7 @@ func init() {
 	KadvisorCmd.PersistentFlags().DurationVarP(&PollDuration, "poll", "p", 10*time.Second, "poll duration")
 
 	KadvisorCmd.PersistentFlags().StringVarP(&KubernetesMaster, "kubernetes-master", "k", "", "Kubernetes master")
-	KadvisorCmd.PersistentFlags().StringVar(&KubernetesApiVersion, "kubernetes-api-version", "v1beta2", "Kubernetes API version")
+	KadvisorCmd.PersistentFlags().StringVar(&KubernetesApiVersion, "kubernetes-api-version", "v1beta3", "Kubernetes API version")
 	KadvisorCmd.PersistentFlags().BoolVar(&KubernetesInsecure, "kubernetes-skip-tls-verify", false, "Skip TLS verify of Kubernetes master certificate")
 	KadvisorCmd.PersistentFlags().StringVar(&KubernetesClientAuthFile, "kubernetes-client-auth-file", "", "Kubernetes clien auth file")
 
@@ -130,7 +130,11 @@ func InitializeConfig() {
 	log.WithField("config", viper.AllSettings()).Debug("Configured settings")
 }
 
-func InitializeKubeClient() {
+func InitializeKubeClient() *kube_client.Client {
+	if kubernetesClient != nil {
+		return kubernetesClient
+	}
+
 	kubeConfig := kube_client.Config{
 		Host:     viper.GetString("kubernetesMaster"),
 		Version:  viper.GetString("kubernetesApiVersion"),
@@ -149,8 +153,9 @@ func InitializeKubeClient() {
 		}
 	}
 
-	KubernetesClient = kube_client.NewOrDie(&kubeConfig)
-	if _, err := KubernetesClient.ServerVersion(); err != nil {
+	kubernetesClient := kube_client.NewOrDie(&kubeConfig)
+	if _, err := kubernetesClient.ServerVersion(); err != nil {
 		log.Fatal(err)
 	}
+	return kubernetesClient
 }
