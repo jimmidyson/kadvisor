@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"fmt"
+	"encoding/json"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -18,6 +19,15 @@ func init() {
 
 func start(cmd *cobra.Command, args []string) {
 	InitializeConfig()
-	InitializeKubeClient()
-	fmt.Println("Running")
+	kubernetesClient := InitializeKubeClient()
+	log.Info("Running")
+	nodeList, err := kubernetesClient.Nodes().List()
+	if err != nil {
+		log.Fatal(err)
+	}
+	marshalledNodes, err := json.MarshalIndent(nodeList, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Debug(string(marshalledNodes[:]))
 }
