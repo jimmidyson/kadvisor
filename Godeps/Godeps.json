@@ -156,6 +156,10 @@
 			"Rev": "90734830d1ec30c19cb03e3ecd76a43dc1618b01"
 		},
 		{
+			"ImportPath": "github.com/tuxychandru/pubsub",
+			"Rev": "9a40b5ef119cc81d1ca384b2726c4d58be07ddee"
+		},
+		{
 			"ImportPath": "github.com/xordataexchange/crypt/backend",
 			"Comment": "v0.0.2-11-g0499a3c",
 			"Rev": "0499a3c94698e44032bd5fab8ba6f45672406678"
