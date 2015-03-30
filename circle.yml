@@ -7,8 +7,8 @@ dependencies:
     - go get github.com/tools/godep
   override:
     - |
-      ([[ "$CIRCLE_BRANCH" = pull/* ]] && git fetch origin $CIRCLE_BRANCH/head:$CIRCLE_BRANCH && git checkout $CIRCLE_BRANCH && git merge --no-ff master && make) || \
-      ([[ "$CIRCLE_BRANCH" != pull/* ]] && git checkout $CIRCLE_BRANCH && make)
+      ([[ "$CIRCLE_BRANCH" = pull/* ]] && git merge --no-ff master && make) || \
+      ([[ "$CIRCLE_BRANCH" != pull/* ]] && make)
 
 test:
   override:
