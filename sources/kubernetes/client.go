@@ -41,8 +41,10 @@ func initializeKubeClient(host string, apiVersion string, insecure bool, clientA
 	}
 
 	kubernetesClient := kube_client.NewOrDie(&kubeConfig)
-	if _, err := kubernetesClient.ServerVersion(); err != nil {
+	if versionInfo, err := kubernetesClient.ServerVersion(); err != nil {
 		log.WithField("error", err).Fatal("Could not validate Kubernetes master")
+	} else {
+		log.WithFields(log.Fields{"host": kubeConfig.Host, "version": versionInfo.String()}).Debug("Validated master")
 	}
 	return kubernetesClient
 }
