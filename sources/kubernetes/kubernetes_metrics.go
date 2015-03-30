@@ -26,15 +26,15 @@ import (
 	"github.com/fabric8io/kadvisor/sources"
 )
 
+func init() {
+	sources.Register("kubernetes", New)
+}
+
 const (
 	defaultInsecure       = false
 	defaultApiVersion     = "v1beta3"
 	defaultClientAuthFile = ""
 )
-
-func init() {
-	sources.Register("kubernetes", New)
-}
 
 type KubernetesMetricsSource struct {
 	master         string
