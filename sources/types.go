@@ -16,6 +16,8 @@
 
 package sources
 
+import "github.com/tuxychandru/pubsub"
+
 type Source interface {
-	Start()
+	Start(pubSub *pubsub.PubSub)
 }

@@ -14,9 +14,25 @@
  * limitations under the License.
  */
 
-package main
+package influxdb
 
 import (
-	_ "github.com/fabric8io/kadvisor/sinks/influxdb"
-	_ "github.com/fabric8io/kadvisor/sources/kubernetes"
+	log "github.com/Sirupsen/logrus"
+	"github.com/fabric8io/kadvisor/sinks"
+	"github.com/tuxychandru/pubsub"
 )
+
+func init() {
+	sinks.Register("influxdb", New)
+}
+
+type InfluxdbSink struct {
+}
+
+func New(uri string) (sinks.Sink, error) {
+	return &InfluxdbSink{}, nil
+}
+
+func (k *InfluxdbSink) Start(pubSub *pubsub.PubSub) {
+	log.Info("Starting")
+}

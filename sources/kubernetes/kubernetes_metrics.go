@@ -24,6 +24,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/fabric8io/kadvisor/sources"
+	"github.com/tuxychandru/pubsub"
 )
 
 func init() {
@@ -79,7 +80,7 @@ func New(uri string) (sources.Source, error) {
 	return source, nil
 }
 
-func (k *KubernetesMetricsSource) Start() {
+func (k *KubernetesMetricsSource) Start(pubSub *pubsub.PubSub) {
 	kubernetesClient := initializeKubeClient(k.master, k.apiVersion, k.insecure, k.clientAuthFile)
 	nodeList, err := kubernetesClient.Nodes().List()
 	if err != nil {

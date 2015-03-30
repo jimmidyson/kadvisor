@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package main
+package sinks
 
 import (
-	_ "github.com/fabric8io/kadvisor/sinks/influxdb"
-	_ "github.com/fabric8io/kadvisor/sources/kubernetes"
+	"github.com/tuxychandru/pubsub"
 )
+
+type Sink interface {
+	Start(pubSub *pubsub.PubSub)
+}

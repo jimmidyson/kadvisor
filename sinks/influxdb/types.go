@@ -14,9 +14,4 @@
  * limitations under the License.
  */
 
-package main
-
-import (
-	_ "github.com/fabric8io/kadvisor/sinks/influxdb"
-	_ "github.com/fabric8io/kadvisor/sources/kubernetes"
-)
+package influxdb

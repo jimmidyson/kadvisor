@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package main
+package sinks
 
-import (
-	_ "github.com/fabric8io/kadvisor/sinks/influxdb"
-	_ "github.com/fabric8io/kadvisor/sources/kubernetes"
-)
+var registry = make(map[string](func(string) (Sink, error)))
+
+func Register(uriPrefix string, sinkFunc func(string) (Sink, error)) {
+	registry[uriPrefix] = sinkFunc
+}
+
+func Lookup(uriPrefix string) (func(string) (Sink, error), bool) {
+	sink, ok := registry[uriPrefix]
+	if !ok {
+		return nil, ok
+	}
+	return sink, ok
+}

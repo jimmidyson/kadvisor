@@ -21,9 +21,11 @@ import (
 	"reflect"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/fabric8io/kadvisor/sinks"
 	"github.com/fabric8io/kadvisor/sources"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tuxychandru/pubsub"
 )
 
 var startCmd = &cobra.Command{
@@ -46,6 +48,15 @@ func start(cmd *cobra.Command, args []string) {
 		log.Fatal("Exiting: No sinks specified")
 	}
 
+	pubSub := pubsub.New(0)
+	defer pubSub.Shutdown()
+
+	// Start sinks before sources so we can
+	startSinks(pubSub)
+	startSources(pubSub)
+}
+
+func startSources(pubSub *pubsub.PubSub) {
 	log.WithField("uris", reflect.TypeOf(viper.Get("sources"))).Debug("Creating all sources")
 
 	for _, source := range viper.Get("sources").(uris) {
@@ -65,6 +76,30 @@ func start(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.WithFields(log.Fields{"type": sourceType, "url": sourceUrl, "error": err}).Fatal("Could not create source")
 		}
-		source.Start()
+		source.Start(pubSub)
+	}
+}
+
+func startSinks(pubSub *pubsub.PubSub) {
+	log.WithField("uris", reflect.TypeOf(viper.Get("sinks"))).Debug("Creating all sinks")
+
+	for _, sink := range viper.Get("sinks").(uris) {
+		log.WithField("uri", sink).Debug("Creating sink")
+		u, err := url.Parse(sink)
+		if err != nil {
+			log.WithField("uri", sink).Fatal("Unparseable sink RL")
+		}
+		sinkType := u.Scheme
+		sinkUrl := sink[len(sinkType)+3:]
+		log.WithFields(log.Fields{"type": sinkType, "url": sinkUrl}).Debug("Parsed sink URL")
+		sinkFunc, ok := sinks.Lookup(sinkType)
+		if !ok {
+			log.WithField("type", sinkType).Fatal("Unregistered sink type")
+		}
+		sink, err := sinkFunc(sinkUrl)
+		if err != nil {
+			log.WithFields(log.Fields{"type": sinkType, "url": sinkUrl, "error": err}).Fatal("Could not create sink")
+		}
+		sink.Start(pubSub)
 	}
 }
