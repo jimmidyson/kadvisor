@@ -7,6 +7,7 @@ dependencies:
     - go get github.com/tools/godep
   override:
     - |
+      echo $GOPATH &&
       ([[ "$CIRCLE_BRANCH" = pull/* ]] && git merge --no-ff master && make) || \
       ([[ "$CIRCLE_BRANCH" != pull/* ]] && make)
 
