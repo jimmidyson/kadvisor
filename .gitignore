@@ -1,3 +1,4 @@
-kadvisor
-release
-build
+/kadvisor
+/release
+/build
+/auth.json
