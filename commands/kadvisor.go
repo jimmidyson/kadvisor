@@ -85,7 +85,7 @@ func InitializeConfig() {
 	}
 
 	viper.SetDefault("verbose", false)
-	viper.SetDefault("poll", 10*time.Second)
+	viper.SetDefault("defaultPoll", 10*time.Second)
 
 	if kadvisorCmdV.PersistentFlags().Lookup("verbose").Changed {
 		viper.Set("verbose", verbose)

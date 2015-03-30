@@ -153,7 +153,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/viper",
-			"Rev": "90734830d1ec30c19cb03e3ecd76a43dc1618b01"
+			"Rev": "ac722f39d36b2f539be797713e89b1c684b60b9a"
 		},
 		{
 			"ImportPath": "github.com/tuxychandru/pubsub",

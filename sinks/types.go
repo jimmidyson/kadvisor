@@ -17,9 +17,11 @@
 package sinks
 
 import (
+	"sync"
+
 	"github.com/tuxychandru/pubsub"
 )
 
 type Sink interface {
-	Start(pubSub *pubsub.PubSub)
+	Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup)
 }

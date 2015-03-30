@@ -18,7 +18,10 @@ package commands
 
 import (
 	"net/url"
+	"os"
+	"os/signal"
 	"reflect"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/fabric8io/kadvisor/sinks"
@@ -49,14 +52,25 @@ func start(cmd *cobra.Command, args []string) {
 	}
 
 	pubSub := pubsub.New(0)
-	defer pubSub.Shutdown()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	go func() {
+		<-signalChan
+		pubSub.Shutdown()
+	}()
 
 	// Start sinks before sources so we can
-	startSinks(pubSub)
-	startSources(pubSub)
+	var sinkWg sync.WaitGroup
+	startSinks(pubSub, &sinkWg)
+	var sourceWg sync.WaitGroup
+	startSources(pubSub, &sourceWg)
+
+	sourceWg.Wait()
+	sinkWg.Wait()
 }
 
-func startSources(pubSub *pubsub.PubSub) {
+func startSources(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
 	log.WithField("uris", reflect.TypeOf(viper.Get("sources"))).Debug("Creating all sources")
 
 	for _, source := range viper.Get("sources").(uris) {
@@ -76,11 +90,11 @@ func startSources(pubSub *pubsub.PubSub) {
 		if err != nil {
 			log.WithFields(log.Fields{"type": sourceType, "url": sourceUrl, "error": err}).Fatal("Could not create source")
 		}
-		source.Start(pubSub)
+		source.Start(pubSub, wg)
 	}
 }
 
-func startSinks(pubSub *pubsub.PubSub) {
+func startSinks(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
 	log.WithField("uris", reflect.TypeOf(viper.Get("sinks"))).Debug("Creating all sinks")
 
 	for _, sink := range viper.Get("sinks").(uris) {
@@ -100,6 +114,6 @@ func startSinks(pubSub *pubsub.PubSub) {
 		if err != nil {
 			log.WithFields(log.Fields{"type": sinkType, "url": sinkUrl, "error": err}).Fatal("Could not create sink")
 		}
-		sink.Start(pubSub)
+		sink.Start(pubSub, wg)
 	}
 }

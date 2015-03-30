@@ -17,6 +17,8 @@
 package influxdb
 
 import (
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/fabric8io/kadvisor/sinks"
 	"github.com/tuxychandru/pubsub"
@@ -33,6 +35,13 @@ func New(uri string) (sinks.Sink, error) {
 	return &InfluxdbSink{}, nil
 }
 
-func (k *InfluxdbSink) Start(pubSub *pubsub.PubSub) {
-	log.Info("Starting")
+func (k *InfluxdbSink) Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
+	metricsSub := pubSub.Sub("metrics")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for msg := range metricsSub {
+			log.WithFields(log.Fields{"sink": "influxdb", "msg": msg}).Debug("Received message")
+		}
+	}()
 }

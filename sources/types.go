@@ -16,8 +16,12 @@
 
 package sources
 
-import "github.com/tuxychandru/pubsub"
+import (
+	"sync"
+
+	"github.com/tuxychandru/pubsub"
+)
 
 type Source interface {
-	Start(pubSub *pubsub.PubSub)
+	Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup)
 }

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -221,6 +222,7 @@ func TestEnv(t *testing.T) {
 	AutomaticEnv()
 
 	assert.Equal(t, "crunk", Get("name"))
+
 }
 
 func TestEnvPrefix(t *testing.T) {
@@ -258,6 +260,18 @@ func TestAutoEnvWithPrefix(t *testing.T) {
 	SetEnvPrefix("Baz")
 	os.Setenv("BAZ_BAR", "13")
 	assert.Equal(t, "13", Get("bar"))
+}
+
+func TestSetEnvReplacer(t *testing.T) {
+	Reset()
+
+	AutomaticEnv()
+	os.Setenv("REFRESH_INTERVAL", "30s")
+
+	replacer := strings.NewReplacer("-", "_")
+	SetEnvKeyReplacer(replacer)
+
+	assert.Equal(t, "30s", Get("refresh-interval"))
 }
 
 func TestAllKeys(t *testing.T) {
@@ -361,4 +375,21 @@ func TestBoundCaseSensitivity(t *testing.T) {
 	BindPFlag("eYEs", flag)
 	assert.Equal(t, "green", Get("eyes"))
 
+}
+
+func TestSizeInBytes(t *testing.T) {
+	input := map[string]uint{
+		"":               0,
+		"b":              0,
+		"12 bytes":       0,
+		"200000000000gb": 0,
+		"12 b":           12,
+		"43 MB":          43 * (1 << 20),
+		"10mb":           10 * (1 << 20),
+		"1gb":            1 << 30,
+	}
+
+	for str, expected := range input {
+		assert.Equal(t, expected, parseSizeInBytes(str), str)
+	}
 }

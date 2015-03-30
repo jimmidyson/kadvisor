@@ -21,9 +21,12 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/fabric8io/kadvisor/sources"
+	"github.com/spf13/viper"
 	"github.com/tuxychandru/pubsub"
 )
 
@@ -42,6 +45,7 @@ type KubernetesMetricsSource struct {
 	apiVersion     string
 	insecure       bool
 	clientAuthFile string
+	updateInterval time.Duration
 }
 
 func New(uri string) (sources.Source, error) {
@@ -62,6 +66,7 @@ func New(uri string) (sources.Source, error) {
 		apiVersion:     defaultApiVersion,
 		insecure:       defaultInsecure,
 		clientAuthFile: defaultClientAuthFile,
+		updateInterval: viper.GetDuration("defaultPoll"),
 	}
 	options := parsedUrl.Query()
 	if len(options["apiVersion"]) >= 1 {
@@ -77,10 +82,17 @@ func New(uri string) (sources.Source, error) {
 	if len(options["auth"]) >= 1 {
 		source.clientAuthFile = options["auth"][0]
 	}
+	if len(options["interval"]) >= 1 {
+		interval, err := time.ParseDuration(options["interval"][0])
+		if err != nil {
+			log.WithField("interval", options["interval"][0]).Fatal("Invalid poll interval for Kubernetes source")
+		}
+		source.updateInterval = interval
+	}
 	return source, nil
 }
 
-func (k *KubernetesMetricsSource) Start(pubSub *pubsub.PubSub) {
+func (k *KubernetesMetricsSource) Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
 	kubernetesClient := initializeKubeClient(k.master, k.apiVersion, k.insecure, k.clientAuthFile)
 	nodeList, err := kubernetesClient.Nodes().List()
 	if err != nil {
@@ -101,4 +113,20 @@ func (k *KubernetesMetricsSource) Start(pubSub *pubsub.PubSub) {
 		}
 		log.Infof("Collecting from node %v (%v)", node.Name, node.UID)
 	}
+
+	termSub := pubSub.Sub("termination")
+	wg.Add(1)
+	go func() {
+		ticker := time.NewTicker(k.updateInterval)
+		defer wg.Done()
+		for {
+			select {
+			case <-ticker.C:
+				pubSub.Pub("Hello", "metrics")
+			case <-termSub:
+				return
+			default:
+			}
+		}
+	}()
 }
