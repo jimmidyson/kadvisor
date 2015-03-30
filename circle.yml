@@ -1,0 +1,19 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  pre:
+    - go get github.com/tools/godep
+  override:
+    - |
+      ([[ "$CIRCLE_BRANCH" = pull/* ]] && git fetch origin $CIRCLE_BRANCH/head:$CIRCLE_BRANCH && git checkout $CIRCLE_BRANCH && git merge --no-ff master && make) || \
+      ([[ "$CIRCLE_BRANCH" != pull/* ]] && git checkout $CIRCLE_BRANCH && make)
+
+test:
+  override:
+    - godep go test ./...
+    - |
+      formatted="$(go fmt ./...)" && \
+      ( ( [[ -n $formatted ]] && echo "gofmt failed on the following files:" && echo -ne $formatted && exit 1) || (( [[ -z $formatted ]] && echo "gofmt passed")  ) )
+

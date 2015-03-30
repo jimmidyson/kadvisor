@@ -41,10 +41,4 @@ clean:
 	rm -rf build
 	docker rmi $(NAME):dev $(NAME):$(VERSION) || true
 
-circleci:
-	rm ~/.gitconfig
-ifneq ($(CIRCLE_BRANCH), release)
-	echo build-$$CIRCLE_BUILD_NUM > VERSION
-endif
-
-.PHONY: release clean build circleci
+.PHONY: release clean build
