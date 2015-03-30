@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package api
+package kubernetes
 
 import (
 	"net"
@@ -22,22 +22,22 @@ import (
 	kube_api "github.com/GoogleCloudPlatform/kubernetes/pkg/api"
 )
 
-type Node struct {
+type node struct {
 	*kube_api.Node
 	addresses map[kube_api.NodeAddressType]string
 	ipAddress string
 }
 
-func (n *Node) IsMetricsCollectable() bool {
+func (n *node) isMetricsCollectable() bool {
 	for _, condition := range n.Status.Conditions {
-		if condition.Status == kube_api.ConditionTrue {
+		if condition.Status == kube_api.ConditionTrue || condition.Status == "Full" {
 			return true
 		}
 	}
-	return false
+	return n.Status.Phase == kube_api.NodeRunning
 }
 
-func (n *Node) GetIpAddress() string {
+func (n *node) getIpAddress() string {
 	if len(n.ipAddress) == 0 {
 		if n.addresses == nil {
 			n.addresses = make(map[kube_api.NodeAddressType]string)

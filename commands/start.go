@@ -17,9 +17,13 @@
 package commands
 
 import (
+	"net/url"
+	"reflect"
+
 	log "github.com/Sirupsen/logrus"
-	"github.com/fabric8io/kadvisor/api"
+	"github.com/fabric8io/kadvisor/sources"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var startCmd = &cobra.Command{
@@ -34,24 +38,33 @@ func init() {
 
 func start(cmd *cobra.Command, args []string) {
 	InitializeConfig()
-	kubernetesClient := InitializeKubeClient()
-	nodeList, err := kubernetesClient.Nodes().List()
-	if err != nil {
-		log.Fatal(err)
+
+	if !viper.IsSet("sources") {
+		log.Fatal("Exiting: No sources specified")
 	}
-	for _, kubeNode := range nodeList.Items {
-		node := &api.Node{
-			Node: &kubeNode,
+	if !viper.IsSet("sinks") {
+		log.Fatal("Exiting: No sinks specified")
+	}
+
+	log.WithField("uris", reflect.TypeOf(viper.Get("sources"))).Debug("Creating all sources")
+
+	for _, source := range viper.Get("sources").(uris) {
+		log.WithField("uri", source).Debug("Creating source")
+		u, err := url.Parse(source)
+		if err != nil {
+			log.WithField("uri", source).Fatal("Unparseable source URL")
 		}
-		log.Debugf("New node: %v (%v)", node.Name, node.UID)
-		if !node.IsMetricsCollectable() {
-			log.Debugf("Skipping node %v (%v): node not in collectable state. Node statuses are: %s", node.Name, node.UID, node.Status.Conditions)
-			break
+		sourceType := u.Scheme
+		sourceUrl := source[len(sourceType)+3:]
+		log.WithFields(log.Fields{"type": sourceType, "url": sourceUrl}).Debug("Parsed source URL")
+		sourceFunc, ok := sources.Lookup(sourceType)
+		if !ok {
+			log.WithField("type", sourceType).Fatal("Unregistered source type")
 		}
-		if len(node.GetIpAddress()) == 0 {
-			log.Debugf("Skipping node %v (%v): cannot find IP address. Node addresses are: %s", node.Name, node.UID, node.Status.Addresses)
-			break
+		source, err := sourceFunc(sourceUrl)
+		if err != nil {
+			log.WithFields(log.Fields{"type": sourceType, "url": sourceUrl, "error": err}).Fatal("Could not create source")
 		}
-		log.Infof("Collecting from node %v (%v)", node.Name, node.UID)
+		source.Start()
 	}
 }
