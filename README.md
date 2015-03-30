@@ -74,3 +74,16 @@ also supports the following flags:
 * `apiVersion` - the specified API version (default: `v1beta3`)
 * `insecure` - whether to ignore certificate validation failures (default: `false`)
 * `auth` - the Kubernetes client auth file as detailed at https://github.com/GoogleCloudPlatform/kubernetes/blob/master/pkg/clientauth/clientauth.go (default: None)
+
+## Adding sources & sinks
+
+We'd really love kAdvisor to be useful for as many orgs/teams/people as possible &
+so having as many sources & sinks available as possible is a real target. kAdvisor
+is designed in such a way that adding sources & sinks is pretty simple. All you
+have to do is:
+
+* Create a new package for your source/sink
+* Create your source/sink code that adheres to the `sources.Source`/`sinks.Sink` interface
+* Add an `init` function to your package that registers your new source/sink by calling `sources.Register`/`sinks.Register` with the appropriate prefix
+
+For an example. see the [Kubernetes source](https://github.com/jimmidyson/kadvisor/blob/master/sources/kubernetes/kubernetes_metrics.go)
