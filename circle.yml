@@ -12,12 +12,14 @@ checkout:
 dependencies:
   pre:
     - go get github.com/tools/godep
+    - go get code.google.com/p/go.tools/cmd/cover
+    - go get github.com/mattn/goveralls
   override:
     - make
 
 test:
   override:
-    - godep go test ./...
+    - ./coverage.sh --coveralls
     - |
       formatted="$(go fmt ./...)" && \
       ( ( [[ -n $formatted ]] && echo "gofmt failed on the following files:" && echo -ne $formatted && exit 1) || (( [[ -z $formatted ]] && echo "gofmt passed")  ) )

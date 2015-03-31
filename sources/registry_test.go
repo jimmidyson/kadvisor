@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package commands
+package sources
 
-import "fmt"
+import "testing"
 
-type uris []string
-
-func (s *uris) String() string {
-	return fmt.Sprintf("%v", *s)
-}
-
-func (s *uris) Set(value string) error {
-	*s = append(*s, value)
-	return nil
-}
-
-func (s *uris) Type() string {
-	return "uris"
+func TestRegistry(t *testing.T) {
+	testFunc := func(string) (s Source, err error) {
+		return nil, nil
+	}
+	Register("prefix", testFunc)
+	_, ok := Lookup("prefix")
+	if !ok {
+		t.Error("Failure looking up added source")
+	}
+	_, ok = Lookup("unknown-prefix")
+	if ok {
+		t.Error("Failure looking up unknown source")
+	}
 }

@@ -8,6 +8,7 @@
 & help me to improve it & make it production quality._**
 
 [![Circle CI](https://circleci.com/gh/jimmidyson/kadvisor.svg?style=svg)](https://circleci.com/gh/jimmidyson/kadvisor)
+[![Coverage Status](https://coveralls.io/repos/jimmidyson/kadvisor/badge.svg?branch=master)](https://coveralls.io/r/jimmidyson/kadvisor?branch=master)
 
 kAdvisor collects metrics from various configured sources & sends them to configured sinks.
 kAdvisor supports multiple sources & sinks.
