@@ -7,6 +7,8 @@
 **_All feedback on this project greatly received - if you feel it's useful then please let me know
 & help me to improve it & make it production quality._**
 
+[![Circle CI](https://circleci.com/gh/jimmidyson/kadvisor.svg?style=svg)](https://circleci.com/gh/jimmidyson/kadvisor)
+
 kAdvisor collects metrics from various configured sources & sends them to configured sinks.
 kAdvisor supports multiple sources & sinks.
 
