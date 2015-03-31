@@ -19,7 +19,7 @@ dependencies:
 
 test:
   override:
-    - ./coverage.sh --coveralls
+    - cd ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && ./coverage.sh --coveralls
     - |
       formatted="$(go fmt ./...)" && \
       ( ( [[ -n $formatted ]] && echo "gofmt failed on the following files:" && echo -ne $formatted && exit 1) || (( [[ -z $formatted ]] && echo "gofmt passed")  ) )
