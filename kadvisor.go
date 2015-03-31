@@ -16,7 +16,7 @@
 
 package main
 
-import "github.com/fabric8io/kadvisor/commands"
+import "github.com/jimmidyson/kadvisor/commands"
 
 func main() {
 

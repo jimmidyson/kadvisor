@@ -20,7 +20,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/fabric8io/kadvisor/utils"
+	"github.com/jimmidyson/kadvisor/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 

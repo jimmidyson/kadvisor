@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/fabric8io/kadvisor/sinks"
+	"github.com/jimmidyson/kadvisor/sinks"
 	"github.com/tuxychandru/pubsub"
 )
 

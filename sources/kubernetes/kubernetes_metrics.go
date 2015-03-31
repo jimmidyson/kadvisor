@@ -25,7 +25,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/fabric8io/kadvisor/sources"
+	"github.com/jimmidyson/kadvisor/sources"
 	"github.com/spf13/viper"
 	"github.com/tuxychandru/pubsub"
 )

@@ -24,8 +24,8 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/fabric8io/kadvisor/sinks"
-	"github.com/fabric8io/kadvisor/sources"
+	"github.com/jimmidyson/kadvisor/sinks"
+	"github.com/jimmidyson/kadvisor/sources"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tuxychandru/pubsub"

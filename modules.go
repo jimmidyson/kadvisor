@@ -17,6 +17,6 @@
 package main
 
 import (
-	_ "github.com/fabric8io/kadvisor/sinks/influxdb"
-	_ "github.com/fabric8io/kadvisor/sources/kubernetes"
+	_ "github.com/jimmidyson/kadvisor/sinks/influxdb"
+	_ "github.com/jimmidyson/kadvisor/sources/kubernetes"
 )
