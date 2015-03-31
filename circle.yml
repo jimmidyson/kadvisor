@@ -2,14 +2,18 @@ machine:
   services:
     - docker
 
+checkout:
+  post:
+    - [[ "$CIRCLE_BRANCH" = pull/* ]] && git merge --no-ff master
+    - rm -rf ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+    - mkdir -p ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+    - cp -R $(pwd) ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+
 dependencies:
   pre:
     - go get github.com/tools/godep
   override:
-    - |
-      echo $GOPATH &&
-      ([[ "$CIRCLE_BRANCH" = pull/* ]] && git merge --no-ff master && make) || \
-      ([[ "$CIRCLE_BRANCH" != pull/* ]] && make)
+    - make
 
 test:
   override:
