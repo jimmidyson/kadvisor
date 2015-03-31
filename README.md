@@ -41,22 +41,22 @@ Use "kadvisor help [command]" for more information about a command.
 
 Sources & sinks are specified in the same way, using a URL of the format:
 
-    <source_or_sink_prefix>://<source_or_sink_url>
+    <source_or_sink_prefix>:<source_or_sink_configuration>
 
 For example, to use Kubernetes as a source you would specify:
 
-    --source=kubernetes://https://192.168.0.1
+    --source=kubernetes:https://192.168.0.1
 
 You can specify multiple sources/sinks by just repeating the `--source` & `--sink` flags.
 For example, if you want to collect from multiple Kubernetes masters:
 
-    --source=kubernetes://https://192.168.0.1 --source=kubernetes://https://192.168.0.2
+    --source=kubernetes:https://192.168.0.1 --source=kubernetes:https://192.168.0.2
 
 Every source & sink has its own specific configuration & these are passed as query parameters
 to the source/sink URL. For example, to configure the API version for the Kubernetes source
 you would specify the `apiVersion` query parameter:
 
-    --source=kubernetes://https://192.168.0.1?apiVersion=v1beta2
+    --source=kubernetes:https://192.168.0.1?apiVersion=v1beta2
 
 See the sources & sinks documentation for their specific flags. Sources & sinks should
 validate their input at creation time (fail-fast approach).
@@ -70,7 +70,7 @@ retrieves nodes & pods from the Kubernetes master, collecting & collating metric
 passing them to the configured sinks to process.
 
 You can configure the Kubernetes source as detailed above. The prefix for a Kubernetes
-source is `kubernetes://` & the remainder of the URL is passed to the source initializer.
+source is `kubernetes:` & the remainder of the URL is passed to the source initializer.
 The hostname in the source URL is the hostname/IP of the Kubernetes master. The Kubernetes source
 also supports the following flags:
 

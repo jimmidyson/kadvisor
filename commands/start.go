@@ -80,7 +80,10 @@ func startSources(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
 			log.WithField("uri", source).Fatal("Unparseable source URL")
 		}
 		sourceType := u.Scheme
-		sourceUrl := source[len(sourceType)+3:]
+		sourceUrl := u.Opaque
+		if len(sourceUrl) == 0 {
+			log.WithFields(log.Fields{"url": source}).Fatal("Invalid source configuration")
+		}
 		log.WithFields(log.Fields{"type": sourceType, "url": sourceUrl}).Debug("Parsed source URL")
 		sourceFunc, ok := sources.Lookup(sourceType)
 		if !ok {
@@ -104,7 +107,10 @@ func startSinks(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
 			log.WithField("uri", sink).Fatal("Unparseable sink RL")
 		}
 		sinkType := u.Scheme
-		sinkUrl := sink[len(sinkType)+3:]
+		sinkUrl := u.Opaque
+		if len(sinkUrl) == 0 {
+			log.WithFields(log.Fields{"url": sink}).Fatal("Invalid sink configuration")
+		}
 		log.WithFields(log.Fields{"type": sinkType, "url": sinkUrl}).Debug("Parsed sink URL")
 		sinkFunc, ok := sinks.Lookup(sinkType)
 		if !ok {
