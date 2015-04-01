@@ -25,9 +25,9 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jimmidyson/kadvisor/api"
 	"github.com/jimmidyson/kadvisor/sources"
 	"github.com/spf13/viper"
-	"github.com/tuxychandru/pubsub"
 )
 
 func init() {
@@ -48,7 +48,7 @@ type KubernetesMetricsSource struct {
 	updateInterval time.Duration
 }
 
-func New(uri string) (sources.Source, error) {
+func New(uri string, options map[string][]string) (sources.Source, error) {
 	parsedUrl, err := url.Parse(os.ExpandEnv(uri))
 	if err != nil {
 		log.WithFields(log.Fields{"url": uri, "error": err}).Fatal("Could not create Kubernetes source")
@@ -68,7 +68,6 @@ func New(uri string) (sources.Source, error) {
 		clientAuthFile: defaultClientAuthFile,
 		updateInterval: viper.GetDuration("defaultPoll"),
 	}
-	options := parsedUrl.Query()
 	if len(options["apiVersion"]) >= 1 {
 		source.apiVersion = options["apiVersion"][0]
 	}
@@ -92,12 +91,13 @@ func New(uri string) (sources.Source, error) {
 	return source, nil
 }
 
-func (k *KubernetesMetricsSource) Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
+func (k *KubernetesMetricsSource) Start(pipelineChan chan interface{}, wg *sync.WaitGroup) chan api.Stop {
 	kubernetesClient := initializeKubeClient(k.master, k.apiVersion, k.insecure, k.clientAuthFile)
 	nodeList, err := kubernetesClient.Nodes().List()
 	if err != nil {
 		log.Fatal(err)
 	}
+	wg.Add(1)
 	for _, kubeNode := range nodeList.Items {
 		node := &node{
 			Node: &kubeNode,
@@ -114,19 +114,20 @@ func (k *KubernetesMetricsSource) Start(pubSub *pubsub.PubSub, wg *sync.WaitGrou
 		log.Infof("Collecting from node %v (%v)", node.Name, node.UID)
 	}
 
-	termSub := pubSub.Sub("termination")
-	wg.Add(1)
+	stopChan := make(chan api.Stop)
 	go func() {
 		ticker := time.NewTicker(k.updateInterval)
 		defer wg.Done()
 		for {
 			select {
 			case <-ticker.C:
-				pubSub.Pub("Hello", "metrics")
-			case <-termSub:
+				pipelineChan <- "Hello"
+			case <-stopChan:
 				return
 			default:
 			}
 		}
 	}()
+
+	return stopChan
 }

@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package sources
+package api
 
-var registry = make(map[string](func(string, map[string][]string) (Source, error)))
+import "fmt"
 
-func Register(uriPrefix string, sourceFunc func(string, map[string][]string) (Source, error)) {
-	registry[uriPrefix] = sourceFunc
+type Uris []string
+
+func (s *Uris) String() string {
+	return fmt.Sprintf("%v", *s)
 }
 
-func Lookup(uriPrefix string) (func(string, map[string][]string) (Source, error), bool) {
-	source, ok := registry[uriPrefix]
-	if !ok {
-		return nil, ok
-	}
-	return source, ok
+func (s *Uris) Set(value string) error {
+	*s = append(*s, value)
+	return nil
 }
+
+func (s *Uris) Type() string {
+	return "uris"
+}
+
+type Stop struct{}

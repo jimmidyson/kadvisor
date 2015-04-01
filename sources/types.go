@@ -19,9 +19,9 @@ package sources
 import (
 	"sync"
 
-	"github.com/tuxychandru/pubsub"
+	"github.com/jimmidyson/kadvisor/api"
 )
 
 type Source interface {
-	Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup)
+	Start(chan interface{}, *sync.WaitGroup) chan api.Stop
 }

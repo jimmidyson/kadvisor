@@ -14,21 +14,33 @@
  * limitations under the License.
  */
 
-package commands
+package pipeline
 
-import "fmt"
+import "sync"
 
-type uris []string
+var pipelineChan chan interface{}
+var stopMutex sync.RWMutex
 
-func (s *uris) String() string {
-	return fmt.Sprintf("%v", *s)
+func Start(sinkChannels []chan interface{}, wg *sync.WaitGroup) chan interface{} {
+	stopMutex.Lock()
+	defer stopMutex.Unlock()
+	pipelineChan = make(chan interface{})
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for msg := range pipelineChan {
+			for _, sinkChannel := range sinkChannels {
+				sinkChannel <- msg
+			}
+		}
+	}()
+
+	return pipelineChan
 }
 
-func (s *uris) Set(value string) error {
-	*s = append(*s, value)
-	return nil
-}
-
-func (s *uris) Type() string {
-	return "uris"
+func Stop() {
+	stopMutex.Lock()
+	defer stopMutex.Unlock()
+	close(pipelineChan)
 }

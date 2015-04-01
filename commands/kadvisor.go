@@ -20,6 +20,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jimmidyson/kadvisor/api"
 	"github.com/jimmidyson/kadvisor/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,8 +40,8 @@ var (
 	verbose             bool
 	cfgFile             string
 	defaultPollDuration time.Duration
-	metricsSources      uris
-	metricsSinks        uris
+	metricsSources      api.Uris
+	metricsSinks        api.Uris
 )
 
 var kubernetesClient *kube_client.Client

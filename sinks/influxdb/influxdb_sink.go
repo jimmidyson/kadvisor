@@ -21,7 +21,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jimmidyson/kadvisor/sinks"
-	"github.com/tuxychandru/pubsub"
 )
 
 func init() {
@@ -31,17 +30,20 @@ func init() {
 type InfluxdbSink struct {
 }
 
-func New(uri string) (sinks.Sink, error) {
+func New(uri string, options map[string][]string) (sinks.Sink, error) {
 	return &InfluxdbSink{}, nil
 }
 
-func (k *InfluxdbSink) Start(pubSub *pubsub.PubSub, wg *sync.WaitGroup) {
-	metricsSub := pubSub.Sub("metrics")
-	wg.Add(1)
+func (k *InfluxdbSink) Start(wg *sync.WaitGroup) chan interface{} {
+
+	metricsChan := make(chan interface{})
+
 	go func() {
 		defer wg.Done()
-		for msg := range metricsSub {
+		for msg := range metricsChan {
 			log.WithFields(log.Fields{"sink": "influxdb", "msg": msg}).Debug("Received message")
 		}
 	}()
+
+	return metricsChan
 }

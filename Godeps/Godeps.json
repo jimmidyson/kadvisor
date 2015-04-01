@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/fabric8io/kadvisor",
-	"GoVersion": "go1.3.3",
+	"ImportPath": "github.com/jimmidyson/kadvisor",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
@@ -154,10 +154,6 @@
 		{
 			"ImportPath": "github.com/spf13/viper",
 			"Rev": "ac722f39d36b2f539be797713e89b1c684b60b9a"
-		},
-		{
-			"ImportPath": "github.com/tuxychandru/pubsub",
-			"Rev": "9a40b5ef119cc81d1ca384b2726c4d58be07ddee"
 		},
 		{
 			"ImportPath": "github.com/xordataexchange/crypt/backend",

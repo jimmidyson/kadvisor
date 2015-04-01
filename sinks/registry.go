@@ -16,13 +16,13 @@
 
 package sinks
 
-var registry = make(map[string](func(string) (Sink, error)))
+var registry = make(map[string](func(string, map[string][]string) (Sink, error)))
 
-func Register(uriPrefix string, sinkFunc func(string) (Sink, error)) {
+func Register(uriPrefix string, sinkFunc func(string, map[string][]string) (Sink, error)) {
 	registry[uriPrefix] = sinkFunc
 }
 
-func Lookup(uriPrefix string) (func(string) (Sink, error), bool) {
+func Lookup(uriPrefix string) (func(string, map[string][]string) (Sink, error), bool) {
 	sink, ok := registry[uriPrefix]
 	if !ok {
 		return nil, ok
