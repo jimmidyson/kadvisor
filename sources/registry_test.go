@@ -19,7 +19,7 @@ package sources
 import "testing"
 
 func TestRegistry(t *testing.T) {
-	testFunc := func(string) (s Source, err error) {
+	testFunc := func(string, map[string][]string) (s Source, err error) {
 		return nil, nil
 	}
 	Register("prefix", testFunc)
