@@ -7,12 +7,11 @@ checkout:
     - ([[ "$CIRCLE_BRANCH" = pull/* ]] && git merge --no-ff master) || [[ "$CIRCLE_BRANCH" != pull/* ]]
     - rm -rf ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
     - mkdir -p ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+    - ln -s $(pwd) ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/$(basename `pwd`)
 
 dependencies:
   pre:
     - make deps
-    - go generate
-    - cp -R $(pwd) ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/
   override:
     - make
 
