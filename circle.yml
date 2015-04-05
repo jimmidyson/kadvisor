@@ -18,7 +18,8 @@ dependencies:
 
 test:
   override:
-    - cd ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && ./coverage.sh --coveralls
+    # Disable until I actually have any tests...
+    #- cd ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} && ./coverage.sh --coveralls
     - |
       git clean -fdx && \
       formatted="$(go fmt ./...)" && \
