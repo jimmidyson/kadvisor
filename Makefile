@@ -23,6 +23,9 @@ test: local
 	godep go test $(shell godep go list ./...)
 
 deps:
+	go get -u github.com/tools/godep
+	go get -u golang.org/x/tools/cmd/cover
+	go get -u github.com/mattn/goveralls
 	go get -u github.com/progrium/go-extpoints
 
 dev:
