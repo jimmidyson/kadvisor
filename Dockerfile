@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gliderlabs/alpine:3.1
+FROM centos:7
 ENTRYPOINT ["/bin/kadvisor"]
-VOLUME /mnt/routes
-EXPOSE 8000
+EXPOSE 80
 
-COPY . /go/src/github.com/fabric8io/kadvisor
-RUN apk-install go git mercurial gcc g++ \
-  && cd /go/src/github.com/fabric8io/kadvisor \
-  && export GOPATH=/go \
-  && export PATH=$GOPATH/bin:$PATH \
-  && go get github.com/tools/godep \
-  && godep go build -ldflags "-X main.Version $(cat VERSION)" -o /bin/kadvisor \
-  && rm -rf /go \
-  && apk del go git mercurial gcc g++
+ENV KADVISOR_VERSION 0.1
+
+RUN yum install -y tar && \
+    yum clean all && \
+    curl -L https://github.com/jimmidyson/kadvisor/releases/download/v${KADVISOR_VERSION}/kadvisor-${KADVISOR_VERSION}-linux-amd64.tar.gz | \
+      tar xzv

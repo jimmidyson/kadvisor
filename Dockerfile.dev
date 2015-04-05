@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gliderlabs/alpine:3.1
-VOLUME /mnt/routes
-EXPOSE 8000
+FROM centos:7
+EXPOSE 80
 
 ENV GOPATH /go
-RUN apk-install go git mercurial gcc g++
-COPY . /go/src/github.com/fabric8io/kadvisor
-WORKDIR /go/src/github.com/fabric8io/kadvisor
-CMD export GOPATH=/go \
-  && export PATH=$GOPATH/bin:$PATH \
-  && go get github.com/tools/godep \
+ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
+RUN yum install -y curl git mercurial tar && yum clean all
+RUN curl https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | tar -C /usr/local -xz
+COPY . /go/src/github.com/jimmidyson/kadvisor
+WORKDIR /go/src/github.com/jimmidyson/kadvisor
+CMD go get -u github.com/tools/godep \
+	&& go get -u github.com/progrium/go-extpoints \
+	&& go generate \
   && godep go build -ldflags "-X main.Version dev" -o /bin/kadvisor \
   && /bin/kadvisor help

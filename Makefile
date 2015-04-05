@@ -16,13 +16,18 @@ NAME=kadvisor
 VERSION=$(shell cat VERSION)
 
 local: *.go **/*.go
+	go generate
 	godep go build -ldflags "-X main.Version dev" -o build/kadvisor
 
+deps:
+	go get -u github.com/progrium/go-extpoints
+
 dev:
-	@docker build -f Dockerfile.dev -t $(NAME):dev .
+	@docker history $(NAME):dev &> /dev/null \
+		|| docker build -f Dockerfile.dev -t $(NAME):dev .
 	@docker run --rm \
 		-v /var/run/docker.sock:/tmp/docker.sock \
-		-v $(PWD):/go/src/github.com/fabric8io/$(NAME)\
+		-v $(PWD):/go/src/github.com/jimmidyson/$(NAME)\
 		-p 8000:8000 \
 		$(NAME):dev
 
@@ -31,14 +36,21 @@ build:
 	docker build -t $(NAME):$(VERSION) .
 
 release:
-	rm -rf release && mkdir release
-	go get github.com/progrium/gh-release/...
-	cp build/* release
-	gh-release create fabric8/$(NAME) $(VERSION) \
+	rm -rf build release && mkdir build release
+	go generate
+	for os in linux freebsd darwin ; do \
+		GOOS=$$os ARCH=amd64 godep go build -ldflags "-X main.Version $(VERSION)" -o build/kadvisor-$$os-amd64 ; \
+		tar --transform 's|^build/||' --transform 's|-.*||' -czvf release/kadvisor-$(VERSION)-$$os-amd64.tar.gz build/kadvisor-$$os-amd64 README.md LICENSE ; \
+	done
+	GOOS=windows ARCH=amd64 godep go build -ldflags "-X main.Version $(VERSION)" -o build/kadvisor-$(VERSION)-windows-amd64.exe
+	zip release/kadvisor-$(VERSION)-windows-amd64.zip build/kadvisor-$(VERSION)-windows-amd64.exe README.md LICENSE && \
+		echo -e "@ build/kadvisor-$(VERSION)-windows-amd64.exe\n@=kadvisor.exe"  | zipnote -w release/kadvisor-$(VERSION)-windows-amd64.zip
+	go get -u github.com/progrium/gh-release/...
+	gh-release create jimmidyson/$(NAME) $(VERSION) \
 		$(shell git rev-parse --abbrev-ref HEAD) $(VERSION)
 
 clean:
-	rm -rf build
+	rm -rf build relase
 	docker rmi $(NAME):dev $(NAME):$(VERSION) || true
 
-.PHONY: release clean build
+.PHONY: release clean build deps

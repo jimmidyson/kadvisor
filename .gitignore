@@ -3,3 +3,4 @@
 /build
 /auth.json
 /.cover
+extpoints/extpoints.go
