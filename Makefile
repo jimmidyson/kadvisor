@@ -23,10 +23,10 @@ test: local
 	godep go test $(shell godep go list ./...)
 
 deps:
-	go get -u github.com/tools/godep
-	go get -u golang.org/x/tools/cmd/cover
-	go get -u github.com/mattn/goveralls
-	go get -u github.com/progrium/go-extpoints
+	go get github.com/tools/godep
+	go get golang.org/x/tools/cmd/cover
+	go get github.com/mattn/goveralls
+	go get github.com/progrium/go-extpoints
 
 dev:
 	@docker history $(NAME):dev &> /dev/null \
@@ -34,7 +34,7 @@ dev:
 	@docker run --rm \
 		-v /var/run/docker.sock:/tmp/docker.sock \
 		-v $(PWD):/go/src/github.com/jimmidyson/$(NAME)\
-		-p 8000:8000 \
+		-p 8000:80 \
 		$(NAME):dev
 
 build:
