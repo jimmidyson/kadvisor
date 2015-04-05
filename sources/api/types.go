@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package sources
+package api
 
-var registry = make(map[string](func(string, map[string][]string) (Source, error)))
+import (
+	"sync"
 
-func Register(uriPrefix string, sourceFunc func(string, map[string][]string) (Source, error)) {
-	registry[uriPrefix] = sourceFunc
-}
+	"github.com/jimmidyson/kadvisor/api"
+)
 
-func Lookup(uriPrefix string) (func(string, map[string][]string) (Source, error), bool) {
-	source, ok := registry[uriPrefix]
-	if !ok {
-		return nil, ok
-	}
-	return source, ok
+type Source interface {
+	Start(chan interface{}, *sync.WaitGroup) chan api.Stop
 }

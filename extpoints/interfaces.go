@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package sources
+package extpoints
 
-import "testing"
+import (
+	sinks_api "github.com/jimmidyson/kadvisor/sinks/api"
+	sources_api "github.com/jimmidyson/kadvisor/sources/api"
+)
 
-func TestRegistry(t *testing.T) {
-	testFunc := func(string, map[string][]string) (s Source, err error) {
-		return nil, nil
-	}
-	Register("prefix", testFunc)
-	_, ok := Lookup("prefix")
-	if !ok {
-		t.Error("Failure looking up added source")
-	}
-	_, ok = Lookup("unknown-prefix")
-	if ok {
-		t.Error("Failure looking up unknown source")
-	}
-}
+type SourceFactory func(string, map[string][]string) (sources_api.Source, error)
+type SinkFactory func(string, map[string][]string) (sinks_api.Sink, error)

@@ -22,6 +22,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jimmidyson/kadvisor/api"
+	"github.com/jimmidyson/kadvisor/extpoints"
 	"github.com/spf13/viper"
 )
 
@@ -51,8 +52,8 @@ func Start(wg *sync.WaitGroup, pipelineChan chan interface{}) {
 			log.WithFields(log.Fields{"url": source}).Fatal("Invalid source configuration")
 		}
 		log.WithFields(log.Fields{"type": sourceType, "url": sourceUrl, "options": options}).Debug("Parsed source URL")
-		sourceFunc, ok := Lookup(sourceType)
-		if !ok {
+		sourceFunc := extpoints.SourceFactories.Lookup(sourceType)
+		if sourceFunc == nil {
 			log.WithField("type", sourceType).Fatal("Unregistered source type")
 		}
 		source, err := sourceFunc(sourceUrl, options)

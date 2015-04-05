@@ -26,12 +26,13 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jimmidyson/kadvisor/api"
-	"github.com/jimmidyson/kadvisor/sources"
+	"github.com/jimmidyson/kadvisor/extpoints"
+	sources_api "github.com/jimmidyson/kadvisor/sources/api"
 	"github.com/spf13/viper"
 )
 
 func init() {
-	sources.Register("kubernetes", New)
+	extpoints.SourceFactories.Register(New, "kubernetes")
 }
 
 const (
@@ -48,7 +49,7 @@ type KubernetesMetricsSource struct {
 	updateInterval time.Duration
 }
 
-func New(uri string, options map[string][]string) (sources.Source, error) {
+func New(uri string, options map[string][]string) (sources_api.Source, error) {
 	parsedUrl, err := url.Parse(os.ExpandEnv(uri))
 	if err != nil {
 		log.WithFields(log.Fields{"url": uri, "error": err}).Fatal("Could not create Kubernetes source")

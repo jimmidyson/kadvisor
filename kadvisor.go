@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+//go:generate go-extpoints
 package main
 
 import "github.com/jimmidyson/kadvisor/commands"

@@ -22,6 +22,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jimmidyson/kadvisor/api"
+	"github.com/jimmidyson/kadvisor/extpoints"
 	"github.com/spf13/viper"
 )
 
@@ -51,8 +52,8 @@ func Start(wg *sync.WaitGroup) []chan interface{} {
 			log.WithFields(log.Fields{"url": sink}).Fatal("Invalid sink configuration")
 		}
 		log.WithFields(log.Fields{"type": sinkType, "url": sinkUrl}).Debug("Parsed sink URL")
-		sinkFunc, ok := Lookup(sinkType)
-		if !ok {
+		sinkFunc := extpoints.SinkFactories.Lookup(sinkType)
+		if sinkFunc == nil {
 			log.WithField("type", sinkType).Fatal("Unregistered sink type")
 		}
 		sink, err := sinkFunc(sinkUrl, options)

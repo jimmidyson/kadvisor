@@ -20,17 +20,18 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/jimmidyson/kadvisor/sinks"
+	"github.com/jimmidyson/kadvisor/extpoints"
+	"github.com/jimmidyson/kadvisor/sinks/api"
 )
 
 func init() {
-	sinks.Register("influxdb", New)
+	extpoints.SinkFactories.Register(New, "influxdb")
 }
 
 type InfluxdbSink struct {
 }
 
-func New(uri string, options map[string][]string) (sinks.Sink, error) {
+func New(uri string, options map[string][]string) (api.Sink, error) {
 	return &InfluxdbSink{}, nil
 }
 

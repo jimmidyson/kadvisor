@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package sinks
+package api
 
 import "sync"
 
