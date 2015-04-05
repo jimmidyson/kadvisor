@@ -19,6 +19,9 @@ local: *.go **/*.go
 	go generate
 	godep go build -ldflags "-X main.Version dev" -o build/kadvisor
 
+test: local
+	godep go test $(shell godep go list ./...)
+
 deps:
 	go get -u github.com/progrium/go-extpoints
 
@@ -53,4 +56,4 @@ clean:
 	rm -rf build relase
 	docker rmi $(NAME):dev $(NAME):$(VERSION) || true
 
-.PHONY: release clean build deps
+.PHONY: release clean build deps test
